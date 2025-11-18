@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Chat Test</title>
+    <style>
+        #messages {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="messages"></div>
+    <input type="text" id="messageInput" placeholder="Type a message...">
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        let ws;
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+
+        function connect() {
+            // Kết nối đến WebSocket server
+            ws = new WebSocket('ws://localhost:8888/ws/chat');
+
+            ws.onopen = function() {
+                appendMessage('Connected to WebSocket server');
+            };
+
+            ws.onmessage = function(event) {
+                appendMessage('Received: ' + event.data);
+            };
+
+            ws.onclose = function() {
+                appendMessage('Disconnected from WebSocket server');
+                // Thử kết nối lại sau 5 giây
+                setTimeout(connect, 5000);
+            };
+
+            ws.onerror = function(error) {
+                console.error('WebSocket Error:', error);
+                appendMessage('WebSocket Error: ' + (error.message || 'Unknown error'));
+            };
+        }
+
+        function sendMessage() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const message = messageInput.value;
+                ws.send(message);
+                appendMessage('Sent: ' + message);
+                messageInput.value = '';
+            } else {
+                appendMessage('Not connected to server');
+            }
+        }
+
+        function appendMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Kết nối khi trang được load
+        connect();
+
+        // Cho phép gửi tin nhắn bằng phím Enter
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

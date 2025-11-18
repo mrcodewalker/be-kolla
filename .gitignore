@@ -1,0 +1,71 @@
+HELP.md
+target/
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# Environment files
+*.env
+*.env.*
+src/main/resources/application-prod.yml
+src/main/resources/application-*.yml
+!src/main/resources/application.yml
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+.env
+.log
+*.env
+
+# Ignore log files
+*.log
+
+# Ignore VS Code settings
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+# Ignore Node.js modules (nếu là project Node)
+node_modules/
+
+# Ignore Java target files (nếu dùng Java)
+target/
+
+# Ignore Python cache (nếu dùng Python)
+__pycache__/
+*.pyc
+
+# Ignore build/dist
+dist/
+out/
+
+# Ignore IDE files
+.idea/
+.yml
+*.yml
