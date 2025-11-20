@@ -12,6 +12,7 @@ import com.example.kolla.repositories.MeetingMessageRepository;
 import com.example.kolla.repositories.MeetingRepository;
 import com.example.kolla.repositories.UserRepository;
 import com.example.kolla.services.MeetingMessageService;
+import com.example.kolla.utils.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.persistence.criteria.Predicate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,7 +55,7 @@ public class MeetingMessageServiceImpl implements MeetingMessageService {
             MeetingMessage message = new MeetingMessage();
             message.setMessage(createDTO.getMessage());
             message.setMeeting(meeting);
-            message.setSentAt(LocalDateTime.now());
+            message.setSentAt(DateTimeUtils.now());
             message.setSender(user);
 
             MeetingMessage savedMessage = messageRepository.save(message);

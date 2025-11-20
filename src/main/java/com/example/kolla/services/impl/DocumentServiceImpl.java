@@ -14,6 +14,7 @@ import com.example.kolla.repositories.MeetingRepository;
 import com.example.kolla.repositories.UserRepository;
 import com.example.kolla.services.DocumentService;
 import com.example.kolla.specifications.DocumentSpecifications;
+import com.example.kolla.utils.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -26,7 +27,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,7 +62,7 @@ public class DocumentServiceImpl implements DocumentService {
             document.setFileSize(file.getSize());
             document.setUser(user);
             document.setMeeting(meeting);
-            document.setCreatedAt(LocalDateTime.now());
+            document.setCreatedAt(DateTimeUtils.now());
             document.setFileContent(file.getBytes());
 
             Document savedDocument = documentRepository.save(document);
@@ -132,7 +132,7 @@ public class DocumentServiceImpl implements DocumentService {
         Document document = documentRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Document not found with id: " + id));
         
-        document.setUpdatedAt(LocalDateTime.now());
+        document.setUpdatedAt(DateTimeUtils.now());
         Document updatedDocument = documentRepository.save(document);
         return DocumentResponse.mapToResponse(updatedDocument);
     }

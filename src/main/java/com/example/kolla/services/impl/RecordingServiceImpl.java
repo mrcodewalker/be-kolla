@@ -26,7 +26,6 @@ import org.springframework.util.StringUtils;
 
 import jakarta.persistence.criteria.Predicate;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import com.example.kolla.utils.DateTimeUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,7 +92,7 @@ public class RecordingServiceImpl implements RecordingService {
         recording.setFileContent(file.getBytes());
         recording.setStartTime(meeting.getStartTime());
         recording.setEndTime(meeting.getEndTime());
-        recording.setCreatedAt(LocalDateTime.now());
+        recording.setCreatedAt(DateTimeUtils.now());
 
         Recording savedRecording = recordingRepository.save(recording);
         return RecordingResponse.mapToResponse(savedRecording);

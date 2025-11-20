@@ -1,16 +1,13 @@
 package com.example.kolla.services;
 
+import com.example.kolla.dto.DocumentEditLogCreateDTO;
 import com.example.kolla.dto.DocumentEditLogDTO;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import java.util.List;
+import com.example.kolla.dto.search.DocumentEditLogSearchDTO;
+import com.example.kolla.responses.PageResponse;
 
 public interface DocumentEditLogService {
-    DocumentEditLogDTO createLog(DocumentEditLogDTO logDTO);
+    DocumentEditLogDTO createLog(DocumentEditLogCreateDTO createDTO);
     DocumentEditLogDTO getLogById(Long id);
-    List<DocumentEditLogDTO> getLogsByDocumentId(Long documentId);
-    List<DocumentEditLogDTO> getLogsByUserId(Long userId);
-    List<DocumentEditLogDTO> getAllLogs();
+    PageResponse<DocumentEditLogDTO> searchLogs(DocumentEditLogSearchDTO searchDTO);
     void deleteLog(Long id);
-    Page<DocumentEditLogDTO> getDocumentHistory(Long documentId, Pageable pageable);
 }

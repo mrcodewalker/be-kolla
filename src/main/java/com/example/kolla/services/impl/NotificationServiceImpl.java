@@ -9,6 +9,7 @@ import com.example.kolla.repositories.NotificationRepository;
 import com.example.kolla.repositories.UserRepository;
 import com.example.kolla.repositories.MeetingRepository;
 import com.example.kolla.services.NotificationService;
+import com.example.kolla.utils.DateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -52,8 +53,8 @@ public class NotificationServiceImpl implements NotificationService {
             );
         }
         notification.setIsRead(false); // Mặc định notification chưa được đọc
-        notification.setCreatedAt(LocalDateTime.now());
-        notification.setUpdatedAt(LocalDateTime.now());
+        notification.setCreatedAt(DateTimeUtils.now());
+        notification.setUpdatedAt(DateTimeUtils.now());
         
         notificationRepository.save(notification);
     }
@@ -93,7 +94,7 @@ public class NotificationServiceImpl implements NotificationService {
         // Tự động đánh dấu notification là đã đọc khi user xem chi tiết
         if (notification.getIsRead() == null || !notification.getIsRead()) {
             notification.setIsRead(true);
-            notification.setUpdatedAt(LocalDateTime.now());
+            notification.setUpdatedAt(DateTimeUtils.now());
             notificationRepository.save(notification);
         }
         
@@ -112,7 +113,7 @@ public class NotificationServiceImpl implements NotificationService {
         }
         
         notification.setIsRead(true);
-        notification.setUpdatedAt(LocalDateTime.now());
+        notification.setUpdatedAt(DateTimeUtils.now());
         notificationRepository.save(notification);
     }
 
@@ -121,7 +122,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void markAllAsRead(Long userId) {
         List<Notification> notifications = notificationRepository.findByReceiverIdAndIsReadFalse(userId);
         
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = DateTimeUtils.now();
         notifications.forEach(notification -> {
             notification.setIsRead(true);
             notification.setUpdatedAt(now);
@@ -156,7 +157,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void markMultipleAsRead(List<Long> notificationIds, Long userId) {
         List<Notification> notifications = notificationRepository.findByIdInAndReceiverId(notificationIds, userId);
         
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = DateTimeUtils.now();
         notifications.forEach(notification -> {
             notification.setIsRead(true);
             notification.setUpdatedAt(now);

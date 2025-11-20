@@ -34,7 +34,6 @@ public class MeetingServiceImpl implements MeetingService {
     private final NotificationRepository notificationRepository;
     private final MeetingMessageRepository meetingMessageRepository;
     private final AttendanceLogRepository attendanceLogRepository;
-    private final DocumentRepository documentRepository;
     private final DocumentEditLogRepository documentEditLogRepository;
     private final RecordingRepository recordingRepository;
 
@@ -247,15 +246,7 @@ public class MeetingServiceImpl implements MeetingService {
         attendanceLogRepository.deleteByMeetingId(meetingId);
         notificationRepository.deleteByMeetingId(meetingId);
         recordingRepository.deleteByMeetingId(meetingId);
-
-        List<Document> documents = documentRepository.findByMeetingId(meetingId);
-        if (!documents.isEmpty()) {
-            List<Long> documentIds = documents.stream()
-                    .map(Document::getId)
-                    .collect(Collectors.toList());
-            documentIds.forEach(documentEditLogRepository::deleteByDocumentId);
-            documentRepository.deleteAll(documents);
-        }
+        documentEditLogRepository.deleteByMeetingId(meetingId);
 
         meetingRepository.delete(meeting);
     }

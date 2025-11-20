@@ -4,6 +4,7 @@ import com.example.kolla.models.Meeting;
 import com.example.kolla.models.User;
 import com.example.kolla.models.Room;
 import com.example.kolla.models.Department;
+import com.example.kolla.utils.DateTimeUtils;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -44,7 +45,7 @@ public class MeetingResponse {
         Room room = meeting.getRoom();
         Department department = room.getDepartment();
         
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = DateTimeUtils.now();
         boolean isComingSoon = meeting.getStartTime() != null && now.isBefore(meeting.getStartTime());
         boolean isExpired = meeting.getEndTime() != null && now.isAfter(meeting.getEndTime());
         

@@ -33,7 +33,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import com.example.kolla.utils.DateTimeUtils;
 
 @Service
@@ -212,8 +211,8 @@ public class UserServiceImpl implements UserService {
         UserSession userSession = new UserSession();
         userSession.setUser(user);
         userSession.setAction(ActionLog.UPDATE_AVATAR.toString());
-        userSession.setCreatedAt(LocalDateTime.now());
-        userSession.setUpdatedAt(LocalDateTime.now());
+        userSession.setCreatedAt(DateTimeUtils.now());
+        userSession.setUpdatedAt(DateTimeUtils.now());
         userSession.setActive(true);
         userSessionService.saveUserSession(userSession, request);
         
@@ -237,8 +236,8 @@ public class UserServiceImpl implements UserService {
         UserSession userSession = new UserSession();
         userSession.setUser(user);
         userSession.setAction(ActionLog.CHANGE_PASSWORD.toString());
-        userSession.setCreatedAt(LocalDateTime.now());
-        userSession.setUpdatedAt(LocalDateTime.now());
+        userSession.setCreatedAt(DateTimeUtils.now());
+        userSession.setUpdatedAt(DateTimeUtils.now());
         userSession.setActive(true);
         userSessionService.saveUserSession(userSession, request);
         

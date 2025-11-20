@@ -185,7 +185,7 @@ public class AttendanceLogServiceImpl implements AttendanceLogService {
             }
 
             // Sử dụng thời gian hiện tại
-            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime now = DateTimeUtils.now();
             if (now.isBefore(log.getJoinAt())) {
                 throw new BadRequestException("Current time cannot be before join time");
             }
