@@ -70,6 +70,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/rooms/**").hasAnyRole("ADMIN", "SECRETARY")
                 // Quản lý người dùng
                 .requestMatchers(HttpMethod.POST, "/api/v1/users/**").hasRole("ADMIN")
+                // Allow authenticated users to update their own profile/password
+                .requestMatchers(HttpMethod.PUT, "/api/v1/users/me/profile").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/v1/users/me/password").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/api/v1/users/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasRole("ADMIN")
                 

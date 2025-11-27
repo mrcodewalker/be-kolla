@@ -1,12 +1,14 @@
 package com.example.kolla.repositories;
 
 import com.example.kolla.models.Member;
+import com.example.kolla.repositories.projections.MemberMeetingCountProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,4 +42,20 @@ public interface MemberRepository extends JpaRepository<Member, Long>, JpaSpecif
     // Đếm số lượng ADMIN members trong một meeting (active)
     @Query("SELECT COUNT(m) FROM Member m WHERE m.meeting.id = :meetingId AND m.isActive = true AND m.role.name = 'ADMIN'")
     long countAdminMembersByMeetingId(@Param("meetingId") Long meetingId);
+
+    @Query("""
+        SELECT m.user.id AS userId,
+               m.user.name AS userName,
+               m.user.email AS userEmail,
+               COUNT(DISTINCT m.meeting.id) AS meetingCount
+        FROM Member m
+        WHERE m.isActive = true
+          AND (:startDate IS NULL OR m.meeting.startTime >= :startDate)
+          AND (:endDate IS NULL OR m.meeting.startTime <= :endDate)
+        GROUP BY m.user.id, m.user.name, m.user.email
+        ORDER BY meetingCount DESC
+        """)
+    List<MemberMeetingCountProjection> countMeetingsPerMember(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }

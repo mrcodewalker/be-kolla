@@ -2,24 +2,29 @@ package com.example.kolla.controllers;
 
 import com.example.kolla.dto.MeetingCreateDTO;
 import com.example.kolla.dto.search.MeetingSearchDTO;
-import com.example.kolla.responses.MeetingResponse;
-import com.example.kolla.responses.UserResponse;
-import com.example.kolla.responses.PageResponse;
+import com.example.kolla.exceptions.BadRequestException;
 import com.example.kolla.responses.ApiResponse;
-import java.util.List;
+import com.example.kolla.responses.MeetingChartStatsResponse;
+import com.example.kolla.responses.MeetingResponse;
+import com.example.kolla.responses.MemberMeetingStatsResponse;
+import com.example.kolla.responses.PageResponse;
+import com.example.kolla.responses.UserResponse;
 import com.example.kolla.services.MeetingService;
 import com.example.kolla.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/meetings")
@@ -100,6 +105,40 @@ public class MeetingController {
         searchDTO.setSortDirection(sortDirection);
         
         return ResponseEntity.ok(ApiResponse.success(meetingService.searchMeetings(searchDTO)));
+    }
+
+    @Operation(summary = "Get meeting counts per member for charting", description = "Returns total meetings per active member within an optional time range")
+    @GetMapping("/stats/members")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY')")
+    public ResponseEntity<ApiResponse<List<MemberMeetingStatsResponse>>> getMemberMeetingStats(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        return ResponseEntity.ok(ApiResponse.success(meetingService.getMemberMeetingStats(startDate, endDate)));
+    }
+
+    @Operation(summary = "Get daily meeting stats for charting",
+            description = "Provides totals of meetings and active participants per day within the requested window (ideal for line/area charts). "
+                    + "If no date is supplied, defaults to the last 7 days. You can also pass days=7,14,... for quick presets.")
+    @GetMapping("/stats/daily")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SECRETARY')")
+    public ResponseEntity<ApiResponse<MeetingChartStatsResponse>> getDailyMeetingStats(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate endDate,
+            @RequestParam(required = false) Integer days) {
+
+        if (days != null) {
+            if (days < 1) {
+                throw new BadRequestException("days must be greater than or equal to 1");
+            }
+            LocalDate resolvedEnd = endDate != null
+                    ? endDate
+                    : (startDate != null ? startDate : LocalDate.now());
+            LocalDate resolvedStart = resolvedEnd.minusDays(days - 1);
+            startDate = resolvedStart;
+            endDate = resolvedEnd;
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(meetingService.getDailyMeetingChartStats(startDate, endDate)));
     }
 
     @Operation(summary = "Update meeting")

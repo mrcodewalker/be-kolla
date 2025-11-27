@@ -2,6 +2,9 @@ package com.example.kolla.services.impl;
 import com.example.kolla.dto.MeetingCreateDTO;
 import com.example.kolla.dto.search.MeetingSearchDTO;
 import com.example.kolla.responses.MeetingResponse;
+import com.example.kolla.responses.MeetingChartStatsResponse;
+import com.example.kolla.responses.MeetingDailyStatsResponse;
+import com.example.kolla.responses.MemberMeetingStatsResponse;
 import com.example.kolla.responses.PageResponse;
 import com.example.kolla.exceptions.BadRequestException;
 import com.example.kolla.exceptions.ResourceNotFoundException;
@@ -18,8 +21,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -312,5 +320,86 @@ public class MeetingServiceImpl implements MeetingService {
                 .orElseThrow(() -> new ResourceNotFoundException("Meeting not found with id: " + meetingId));
         meeting.setMeeting(true);
         meetingRepository.save(meeting);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MemberMeetingStatsResponse> getMemberMeetingStats(LocalDateTime startDate, LocalDateTime endDate) {
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            throw new BadRequestException("Start date must be before end date");
+        }
+
+        return memberRepository.countMeetingsPerMember(startDate, endDate).stream()
+                .map(MemberMeetingStatsResponse::fromProjection)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public MeetingChartStatsResponse getDailyMeetingChartStats(LocalDate startDate, LocalDate endDate) {
+        LocalDate resolvedEnd = endDate != null
+                ? endDate
+                : (startDate != null ? startDate : LocalDate.now());
+        LocalDate resolvedStart = startDate != null
+                ? startDate
+                : resolvedEnd.minusDays(6);
+
+        if (resolvedStart.isAfter(resolvedEnd)) {
+            throw new BadRequestException("Start date must be before end date");
+        }
+
+        LocalDateTime startDateTime = resolvedStart.atStartOfDay();
+        LocalDateTime endDateTime = resolvedEnd.atTime(LocalTime.MAX);
+
+        List<MeetingDailyStatsResponse> rawStats = meetingRepository.aggregateDailyStats(startDateTime, endDateTime)
+                .stream()
+                .map(MeetingDailyStatsResponse::fromProjection)
+                .collect(Collectors.toList());
+
+        List<MeetingDailyStatsResponse> alignedStats = alignDailyStats(resolvedStart, resolvedEnd, rawStats);
+
+        long totalMeetings = alignedStats.stream()
+                .mapToLong(MeetingDailyStatsResponse::getMeetingCount)
+                .sum();
+        long totalParticipants = alignedStats.stream()
+                .mapToLong(MeetingDailyStatsResponse::getParticipantCount)
+                .sum();
+
+        return MeetingChartStatsResponse.builder()
+                .startDate(resolvedStart)
+                .endDate(resolvedEnd)
+                .totalMeetings(totalMeetings)
+                .totalParticipants(totalParticipants)
+                .dailyStats(alignedStats)
+                .build();
+    }
+
+    private List<MeetingDailyStatsResponse> alignDailyStats(LocalDate startDate,
+                                                            LocalDate endDate,
+                                                            List<MeetingDailyStatsResponse> stats) {
+        Map<LocalDate, MeetingDailyStatsResponse> statsByDate = stats.stream()
+                .collect(Collectors.toMap(
+                        MeetingDailyStatsResponse::getDate,
+                        entry -> entry,
+                        (existing, replacement) -> existing,
+                        LinkedHashMap::new
+                ));
+
+        List<MeetingDailyStatsResponse> aligned = new ArrayList<>();
+        LocalDate cursor = startDate;
+        while (!cursor.isAfter(endDate)) {
+            MeetingDailyStatsResponse existing = statsByDate.get(cursor);
+            if (existing == null) {
+                aligned.add(MeetingDailyStatsResponse.builder()
+                        .date(cursor)
+                        .meetingCount(0L)
+                        .participantCount(0L)
+                        .build());
+            } else {
+                aligned.add(existing);
+            }
+            cursor = cursor.plusDays(1);
+        }
+        return aligned;
     }
 }
